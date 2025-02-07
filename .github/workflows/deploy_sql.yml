@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'database/migrations/**'  # Só roda se houver mudanças nos scripts SQL
+  workflow_dispatch:
 
 jobs:
   deploy:
