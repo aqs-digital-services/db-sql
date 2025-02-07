@@ -19,11 +19,9 @@ jobs:
         run: |
           curl -L https://github.com/liquibase/liquibase/releases/download/v4.24.0/liquibase-4.24.0.tar.gz -o liquibase.tar.gz
           tar -xzf liquibase.tar.gz
-          sudo mv liquibase-4.24.0 /usr/local/liquibase
-          echo "export PATH=/usr/local/liquibase:\$PATH" >> $HOME/.bashrc
-          source $HOME/.bashrc
-          /usr/local/liquibase/liquibase --version
-
+          sudo mv liquibase /usr/local/bin/liquibase
+          sudo chmod +x /usr/local/bin/liquibase
+          liquibase --version
 
       - name: Rodar migrações com Liquibase
         env:
