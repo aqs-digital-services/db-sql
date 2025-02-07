@@ -1,0 +1,28 @@
+name: Deploy SQL to Azure
+
+on:
+  push:
+    branches:
+      - main  # Aciona o pipeline quando houver merge na branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar conexão com Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Executar script SQL no Azure SQL Database
+        uses: azure/sql-action@v2
+        with:
+          connection-string: "Server=${{ secrets.AZURE_SQL_SERVER }}; Database=${{ secrets.AZURE_SQL_DATABASE }}; User Id=${{ secrets.AZURE_SQL_USER }}; Password=${{ secrets.AZURE_SQL_PASSWORD }}"
+          path: "migrations/001_create_table.sql"  # Caminho do script SQL
+
