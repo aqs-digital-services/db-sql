@@ -21,8 +21,8 @@ jobs:
 
       - name: Executar as migrações no banco de dados Azure
         env:
-          FLYWAY_URL: ${{ secrets.DB_URL }}
-          FLYWAY_USER: ${{ secrets.DB_USER }}
-          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          FLYWAY_URL: jdbc:sqlserver://${{ secrets.AZURE_SQL_SERVER }}.database.windows.net:1433;database=${{ secrets.AZURE_SQL_DATABASE }};encrypt=true;trustServerCertificate=false;loginTimeout=30;
+          FLYWAY_USER: ${{ secrets.AZURE_SQL_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
         run: |
           /usr/local/flyway/flyway -url="$FLYWAY_URL" -user="$FLYWAY_USER" -password="$FLYWAY_PASSWORD" migrate -locations=filesystem:./database/migrations
