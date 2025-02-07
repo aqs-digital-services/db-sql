@@ -1,9 +1,10 @@
-name: Deploy SQL to Azure
+name: Deploy SQL to Azure Database
 
 on:
   push:
     branches:
-      - main  # Aciona o pipeline quando houver merge na branch main
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -13,16 +14,15 @@ jobs:
       - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Configurar conexão com Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Configurar o Flyway
+        run: |
+          wget -qO- https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.22.3/flyway-commandline-9.22.3-linux-x64.tar.gz | tar xvz
+          sudo mv flyway-9.22.3 /usr/local/flyway
 
-      - name: Executar script SQL no Azure SQL Database
-        uses: azure/sql-action@v2
-        with:
-          connection-string: "Server=${{ secrets.AZURE_SQL_SERVER }}; Database=${{ secrets.AZURE_SQL_DATABASE }}; User Id=${{ secrets.AZURE_SQL_USER }}; Password=${{ secrets.AZURE_SQL_PASSWORD }}"
-          path: "migrations/001_create_table.sql"  # Caminho do script SQL
-
+      - name: Executar as migrações no banco de dados Azure
+        env:
+          FLYWAY_URL: ${{ secrets.DB_URL }}
+          FLYWAY_USER: ${{ secrets.DB_USER }}
+          FLYWAY_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          /usr/local/flyway/flyway -url="$FLYWAY_URL" -user="$FLYWAY_USER" -password="$FLYWAY_PASSWORD" migrate -locations=filesystem:./database/migrations
