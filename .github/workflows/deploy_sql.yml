@@ -22,18 +22,14 @@ jobs:
       - name: Login no Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          creds: ${{ secrets.AZURE_CREDENTIALS_JSON }}
 
-      - name: Configurar autenticação do Flyway com Azure AD
+      - name: Configurar autenticação do Flyway
         run: |
-          export FLYWAY_URL="jdbc:sqlserver://server-congregacao.database.windows.net:1433;databaseName=SEU_DATABASE;encrypt=true;trustServerCertificate=false;loginTimeout=30;"
-          export FLYWAY_USER="admin@CongregacaoJardimCanaa.onmicrosoft.com"
-          export FLYWAY_PASSWORD="${{ secrets.AZURE_CLIENT_SECRET }}"
+          export FLYWAY_URL="jdbc:sqlserver://${{ secrets.AZURE_SQL_SERVER }}:1433;databaseName=${{ secrets.AZURE_SQL_DATABASE }};encrypt=true;trustServerCertificate=false;loginTimeout=30;"
+          export FLYWAY_USER="${{ secrets.AZURE_SQL_USER }}"
+          export FLYWAY_PASSWORD="${{ secrets.AZURE_SQL_PASSWORD }}"
 
       - name: Rodar migrações Flyway
         run: |
           /usr/local/flyway/flyway migrate -locations=filesystem:./database/migrations
-      
