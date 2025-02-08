@@ -42,10 +42,10 @@ jobs:
       - name: Executar scripts SQL no Azure SQL
         if: steps.changed-files.outputs.any_changed == 'true'
         env:
-          SQL_SERVER: ${{ secrets.AZURE_SQL_SERVER }}
-          SQL_DATABASE: ${{ secrets.AZURE_SQL_DATABASE }}
-          SQL_USER: ${{ secrets.AZURE_SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
+          AZURE_SQL_SERVER: ${{ secrets.AZURE_SQL_SERVER }}
+          AZURE_SQL_DATABASE: ${{ secrets.AZURE_SQL_DATABASE }}
+          AZURE_SQL_USER: ${{ secrets.AZURE_SQL_USER }}
+          AZURE_SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
         run: |
           for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "Executando: $file"
