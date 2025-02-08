@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - Main
-    paths:
-      - 'database/**/*'
 
 jobs:
   deploy:
