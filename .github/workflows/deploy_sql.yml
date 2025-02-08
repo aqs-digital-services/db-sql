@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main  # Apenas mudanças na branch main acionam o workflow
-    paths:
-      - 'database/**/*.sql'  # Apenas arquivos SQL dentro do diretório database/
 
 jobs:
   deploy:
