@@ -3,7 +3,7 @@ name: Deploy SQL Scripts to Azure
 on:
   push:
     branches:
-      - Main
+      - main
 
 jobs:
   deploy:
