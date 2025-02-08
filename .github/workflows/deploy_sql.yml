@@ -3,60 +3,44 @@ name: Deploy SQL Scripts to Azure
 on:
   push:
     branches:
-      - main  # Apenas mudanças na branch main acionam o workflow
-
-permissions:
-  id-token: write  # 🔹 Permite autenticação via OIDC no Azure
-  contents: read
+      - Main
+    paths:
+      - 'database/**/*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout do repositório
-        uses: actions/checkout@v4
+    # Ações de checkout do repositório
+    - name: Checkout Repository
+      uses: actions/checkout@v2
 
-      # Adicionando repositório Microsoft
-      - name: Adicionar repositório Microsoft
-        run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-          sudo apt-get update
+    # Adicionando repositório Microsoft
+    - name: Adicionar repositório Microsoft
+      run: |
+        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        curl https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        sudo apt-get update
 
-      # Instalando as ferramentas MSSQL
-      - name: Instalar mssql-tools
-        run: |
-          sudo apt-get install -y mssql-tools
+    # Instalando as ferramentas MSSQL
+    - name: Instalar mssql-tools
+      run: |
+        sudo apt-get install -y mssql-tools
 
-      - name: Configurar autenticação no Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Obter arquivos SQL adicionados, modificados ou removidos
-        id: changed-files
-        uses: tj-actions/changed-files@v41
-        with:
-          files: database/**/*.sql
-
-      - name: Exibir arquivos alterados
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: |
-          echo "Arquivos modificados:"
-          echo "${{ steps.changed-files.outputs.all_changed_files }}"
-
-      - name: Executar scripts SQL no Azure SQL
-        if: steps.changed-files.outputs.any_changed == 'true'
-        env:
-          AZURE_SQL_SERVER: ${{ secrets.AZURE_SQL_SERVER }}
-          AZURE_SQL_DATABASE: ${{ secrets.AZURE_SQL_DATABASE }}
-          AZURE_SQL_USER: ${{ secrets.AZURE_SQL_USER }}
-          AZURE_SQL_PASSWORD: ${{ secrets.AZURE_SQL_PASSWORD }}
-        run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "Executando: $file"
-            sqlcmd -S $SQL_SERVER -d $SQL_DATABASE -U $SQL_USER -P $SQL_PASSWORD -i "$file"
-          done
+    # Login na Azure
+    - name: Login Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+    
+    # Rodando os scripts SQL no banco de dados
+    - name: Executar scripts SQL no Azure
+      run: |
+        for file in $(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'database/'); do
+          echo "Executando script $file..."
+          sqlcmd -S tcp:${{ secrets.AZURE_SQL_SERVER }} -d ${{
+ secrets.AZURE_DATABASE }} -U ${{ secrets.AZURE_SQL_USER }} -P ${{ secrets.AZURE_SQL_PASSWORD }} -i $file
+        done
