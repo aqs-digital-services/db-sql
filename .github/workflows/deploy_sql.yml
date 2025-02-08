@@ -41,6 +41,5 @@ jobs:
       run: |
         for file in $(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'database/'); do
           echo "Executando script $file..."
-          sqlcmd -S tcp:${{ secrets.AZURE_SQL_SERVER }} -d ${{
- secrets.AZURE_DATABASE }} -U ${{ secrets.AZURE_SQL_USER }} -P ${{ secrets.AZURE_SQL_PASSWORD }} -i $file
+          sqlcmd -S tcp:${{ secrets.AZURE_SQL_SERVER }} -d ${{secrets.AZURE_DATABASE }} -U ${{ secrets.AZURE_SQL_USER }} -P ${{ secrets.AZURE_SQL_PASSWORD }} -i $file
         done
