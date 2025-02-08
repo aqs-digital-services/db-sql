@@ -16,10 +16,10 @@ jobs:
 
       - name: Instalar Liquibase
         run: |
-          curl -L https://github.com/liquibase/liquibase/releases/download/v4.24.0/liquibase-4.24.0-linux-x64.tar.gz -o liquibase.tar.gz
+          curl -L https://github.com/liquibase/liquibase/releases/download/v4.24.0/liquibase-4.24.0.tar.gz -o liquibase.tar.gz
           tar -xzf liquibase.tar.gz
-          sudo mv liquibase-4.24.0-linux-x64 /usr/local/liquibase
-          export PATH=$PATH:/usr/local/liquibase
+          sudo mv liquibase /usr/local/bin/liquibase
+          export PATH=$PATH:/usr/local/bin
           liquibase -v
 
       - name: Rodar migrações com Liquibase
