@@ -20,7 +20,7 @@ jobs:
           tar -xzf liquibase.tar.gz
           sudo mv liquibase /usr/local/liquibase
           sudo ln -s /usr/local/liquibase/liquibase /usr/local/bin/liquibase
-          export PATH=$PATH:/usr/local/bin
+          echo "PATH=\$PATH:/usr/local/bin" >> $GITHUB_ENV
           liquibase -v
 
       - name: Rodar migrações com Liquibase
