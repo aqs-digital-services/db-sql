@@ -21,45 +21,57 @@ jobs:
         echo "Data e hora: $(date)"
         echo "Runner: $RUNNER_OS"
 
-    # ✅ Login no Azure para configuração do firewall (caso necessário)
+    # ✅ Login no Azure (corrigido: client-id, tenant-id e secret)
     - name: Login no Azure
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-    # ✅ Adicionar IP do GitHub Actions ao firewall do Azure temporariamente
+    # ✅ Adicionar IP do GitHub Actions ao firewall do Azure (corrigido)
     - name: Adicionar IP ao Firewall do Azure
       run: |
         RUNNER_IP=$(curl -s https://api64.ipify.org)
-        az sql server firewall-rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --server ${{ secrets.AZURE_SQL_SERVER }} --name GitHubRunnerIP --start-ip-address $RUNNER_IP --end-ip-address $RUNNER_IP
+        az sql server firewall-rule create \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --server ${{ secrets.AZURE_SQL_SERVER }} \
+          --name GitHubRunnerIP \
+          --start-ip-address $RUNNER_IP \
+          --end-ip-address $RUNNER_IP
 
     # ✅ Executar Liquibase usando a ação oficial
     - name: Executar Liquibase
       uses: liquibase/liquibase-github-action@v4
       with:
         operation: 'update'
-        changelogFile: 'database/changelog.xml'
+        changeLogFile: 'database/changelog.xml'
         url: ${{ secrets.AZURE_DATABASE_URL }}
         username: ${{ secrets.AZURE_SQL_USER }}
         password: ${{ secrets.AZURE_SQL_PASSWORD }}
+        classpath: './database'
         logLevel: 'info'
 
-    # ✅ Rollback automático em caso de falha
+    # ✅ Rollback automático em caso de falha (corrigido: `count` ao invés de `rollbackCount`)
     - name: Rollback em caso de erro
       if: failure()
       uses: liquibase/liquibase-github-action@v4
       with:
-        operation: 'rollbackCount'
-        changelogFile: 'database/changelog.xml'
+        operation: 'rollback'
+        changeLogFile: 'database/changelog.xml'
         url: ${{ secrets.AZURE_DATABASE_URL }}
         username: ${{ secrets.AZURE_SQL_USER }}
         password: ${{ secrets.AZURE_SQL_PASSWORD }}
-        rollbackCount: '1'
+        classpath: './database'
+        count: '1'  # Corrigido: rollback correto
         logLevel: 'info'
 
-    # ✅ Remover IP do GitHub Actions do Firewall após execução
+    # ✅ Remover IP do GitHub Actions do Firewall após execução (corrigido)
     - name: Remover IP do Firewall do Azure
       if: always()
       run: |
         RUNNER_IP=$(curl -s https://api64.ipify.org)
-        az sql server firewall-rule delete --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --server ${{ secrets.AZURE_SQL_SERVER }} --name GitHubRunnerIP
+        az sql server firewall-rule delete \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --server ${{ secrets.AZURE_SQL_SERVER }} \
+          --name GitHubRunnerIP || echo "Regra de firewall já removida ou não encontrada."
