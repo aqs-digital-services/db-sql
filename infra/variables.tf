@@ -13,6 +13,10 @@ variable "db_server_name" {
   default = "db-congregacao"
 }
 
+variable "subscription_id" {
+  type = string
+}
+
 variable "db_admin" {
   type    = string
   default = "adminuser"

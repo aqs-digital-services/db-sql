@@ -36,7 +36,9 @@ jobs:
         run: |
           cd infra
           terraform apply -auto-approve \
+            -var "subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -var "resource_group_name=${{ secrets.AZURE_RESOURCE_GROUP }}" \
             -var "db_server_name=${{ secrets.AZURE_POSTGRES_SERVER }}" \
             -var "db_admin=${{ secrets.AZURE_POSTGRES_USER }}" \
             -var "db_password=${{ secrets.AZURE_POSTGRES_PASSWORD }}"
+
