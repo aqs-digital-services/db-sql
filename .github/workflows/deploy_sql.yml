@@ -1,44 +1,50 @@
-name: Deploy SQL Scripts to Azure
+name: Deploy Database with Liquibase to Azure
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'database/**'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-    # Ações de checkout do repositório
+    # 📥 Checkout do repositório
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    # Adicionando repositório Microsoft
+    # 🔧 Adicionando repositório Microsoft (caso seja SQL Server, senão remova esta parte)
     - name: Adicionar repositório Microsoft
       run: |
         curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/24.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
         sudo apt-get update
 
-    # Instalando as ferramentas MSSQL
-    - name: Instalar mssql-tools
+    # 🔧 Instalando o Liquibase
+    - name: Instalar Liquibase
       run: |
-        sudo apt-get install -y mssql-tools
+        LIQUIBASE_VERSION="4.23.0"
+        curl -L "https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz" -o liquibase.tar.gz
+        tar -xzf liquibase.tar.gz
+        sudo mv liquibase /opt/liquibase
+        sudo ln -s /opt/liquibase/liquibase /usr/local/bin/liquibase
 
-    # Login na Azure
+    # 🚀 Login na Azure
     - name: Login Azure
       uses: azure/login@v1
       with:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-    
-    # Rodando os scripts SQL no banco de dados
-    - name: Executar scripts SQL no Azure
+
+    # 🔄 Aplicar mudanças no banco de dados com Liquibase
+    - name: Executar migrações Liquibase no Azure SQL
       run: |
-        for file in $(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep 'database/'); do
-          echo "Executando script $file..."
-          sqlcmd -S tcp:${{ secrets.AZURE_SQL_SERVER }} -d ${{
-          secrets.AZURE_DATABASE }} -U ${{ secrets.AZURE_SQL_USER }} -P ${{ secrets.AZURE_SQL_PASSWORD }} -i $file
-        done
+        liquibase --changeLogFile=database/changelog.xml \
+                  --url="jdbc:postgresql://${{ secrets.AZURE_SQL_SERVER }}:5432/${{ secrets.AZURE_DATABASE }}" \
+                  --username="${{ secrets.AZURE_SQL_USER }}" \
+                  --password="${{ secrets.AZURE_SQL_PASSWORD }}" \
+                  update
