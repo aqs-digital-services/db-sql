@@ -17,6 +17,18 @@ variable "subscription_id" {
   type = string
 }
 
+variable "client_id" {
+  type = string
+}
+
+variable "client_secret" {
+  type = string
+}
+
+variable "tenant_id" {
+  type = string
+}
+
 variable "db_admin" {
   type    = string
   default = "adminuser"
