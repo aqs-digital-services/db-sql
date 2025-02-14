@@ -22,17 +22,17 @@ jobs:
             --password ${{ secrets.AZURE_CLIENT_SECRET }} \
             --tenant ${{ secrets.AZURE_TENANT_ID }}
 
-      - name: Configurar Terraform
+      - name: Configurar Terraform!
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
-      - name: Inicializar Terraform
+      - name: Inicializar Terraform!
         run: |
           cd infra
           terraform init
 
-      - name: Aplicar Terraform
+      - name: Aplicar Terraform!
         run: |
           cd infra
           terraform apply -auto-approve \
