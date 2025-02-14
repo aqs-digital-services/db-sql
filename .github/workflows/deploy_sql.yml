@@ -17,6 +17,21 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Obter IP público do runner
+      id: get-ip
+      run: |
+        echo "IP=$(curl -s https://api64.ipify.org)" >> $GITHUB_ENV
+
+    - name: Permitir acesso ao Azure SQL (adicionar IP ao firewall)
+      run: |
+        az login --identity
+        az sql server firewall-rule create \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --server ${{ secrets.AZURE_SQL_SERVER }} \
+          --name "GitHubActions" \
+          --start-ip-address $IP \
+          --end-ip-address $IP
+
     - name: Criar changelog.xml temporário
       run: |
         mkdir -p database
@@ -27,15 +42,6 @@ jobs:
         echo '                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">' >> database/changelog.xml
         echo '</databaseChangeLog>' >> database/changelog.xml
 
-    - name: Verificar se a URL está setada
-      run: |
-        if [[ -z "${{ secrets.AZURE_SQL_URL }}" ]]; then
-          echo "ERRO: AZURE_SQL_URL não está definido!"
-          exit 1
-        else
-          echo "AZURE_SQL_URL está definido."
-        fi
-
     - name: Testar conexão com Azure SQL
       uses: liquibase/liquibase-github-action@v4
       with:
@@ -45,3 +51,11 @@ jobs:
         username: ${{ secrets.AZURE_SQL_USER }}
         password: ${{ secrets.AZURE_SQL_PASSWORD }}
         classpath: './database'
+
+    - name: Remover IP do firewall (opcional)
+      if: always()
+      run: |
+        az sql server firewall-rule delete \
+          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --server ${{ secrets.AZURE_SQL_SERVER }} \
+          --name "GitHubActions"
