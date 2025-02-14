@@ -1,4 +1,4 @@
-name: Test Azure SQL Connection
+name: Azure SQL Connection
 
 on:
   push:
@@ -17,6 +17,13 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Autenticar no Azure
+      run: |
+        az login --service-principal \
+          --username ${{ secrets.AZURE_CLIENT_ID }} \
+          --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+          --tenant ${{ secrets.AZURE_TENANT_ID }}
+
     - name: Obter IP público do runner
       id: get-ip
       run: |
@@ -24,9 +31,8 @@ jobs:
 
     - name: Permitir acesso ao Azure SQL (adicionar IP ao firewall)
       run: |
-        az login --identity
         az sql server firewall-rule create \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --resource-group ${{ secrets.AZURE_SQL_DATABASE }} \
           --server ${{ secrets.AZURE_SQL_SERVER }} \
           --name "GitHubActions" \
           --start-ip-address $IP \
@@ -56,6 +62,6 @@ jobs:
       if: always()
       run: |
         az sql server firewall-rule delete \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+          --resource-group ${{ secrets.AZURE_SQL_DATABASE }} \
           --server ${{ secrets.AZURE_SQL_SERVER }} \
           --name "GitHubActions"
