@@ -17,6 +17,16 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
+    - name: Criar changelog.xml temporário
+      run: |
+        mkdir -p database
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > database/changelog.xml
+        echo '<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"' >> database/changelog.xml
+        echo '                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' >> database/changelog.xml
+        echo '                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog' >> database/changelog.xml
+        echo '                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">' >> database/changelog.xml
+        echo '</databaseChangeLog>' >> database/changelog.xml
+
     - name: Login no Azure
       uses: azure/login@v1
       with:
@@ -31,7 +41,7 @@ jobs:
       with:
         operation: 'status'
         changeLogFile: 'database/changelog.xml'
-        url: ${{ secrets.AZURE_DATABASE_URL }} # ✅ Agora garantindo que a URL seja definida corretamente
+        url: ${{ secrets.AZURE_DATABASE_URL }}
         username: ${{ secrets.AZURE_SQL_USER }}
         password: ${{ secrets.AZURE_SQL_PASSWORD }}
         classpath: './database'
