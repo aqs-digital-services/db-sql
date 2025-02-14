@@ -5,7 +5,6 @@ provider "azurerm" {
   client_id       = var.client_id
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
-  resource_provider_registrations = "none"
 }
 
 resource "azurerm_postgresql_flexible_server" "pg_server" {
@@ -16,5 +15,5 @@ resource "azurerm_postgresql_flexible_server" "pg_server" {
   administrator_login    = var.db_admin
   administrator_password = var.db_password
   sku_name               = "B_Standard_B1ms"
-  storage_mb = 32768
+  storage_mb             = 32768
 }

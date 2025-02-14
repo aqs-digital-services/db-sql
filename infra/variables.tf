@@ -1,6 +1,5 @@
 variable "resource_group_name" {
   type    = string
-  default = "grupo-congregacao"
 }
 
 variable "location" {
@@ -10,7 +9,6 @@ variable "location" {
 
 variable "db_server_name" {
   type    = string
-  default = "db-congregacao"
 }
 
 variable "subscription_id" {
@@ -30,8 +28,7 @@ variable "tenant_id" {
 }
 
 variable "db_admin" {
-  type    = string
-  default = "adminuser"
+  type = string
 }
 
 variable "db_password" {

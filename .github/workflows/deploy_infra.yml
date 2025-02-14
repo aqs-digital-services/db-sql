@@ -20,19 +20,20 @@ jobs:
           az login --service-principal \
             --username ${{ secrets.AZURE_CLIENT_ID }} \
             --password ${{ secrets.AZURE_CLIENT_SECRET }} \
-            --tenant ${{ secrets.AZURE_TENANT_ID }}
+            --tenant ${{ secrets.AZURE_TENANT_ID }} \
+            --allow-no-subscriptions
 
-      - name: Configurar Terraform!
+      - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.0
 
-      - name: Inicializar Terraform!
+      - name: Inicializar Terraform
         run: |
           cd infra
           terraform init
 
-      - name: Aplicar Terraform!
+      - name: Aplicar Terraform
         run: |
           cd infra
           terraform apply -auto-approve \
@@ -44,5 +45,3 @@ jobs:
             -var "db_server_name=${{ secrets.AZURE_POSTGRES_SERVER }}" \
             -var "db_admin=${{ secrets.AZURE_POSTGRES_USER }}" \
             -var "db_password=${{ secrets.AZURE_POSTGRES_PASSWORD }}"
-
-
