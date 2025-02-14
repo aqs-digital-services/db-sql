@@ -27,21 +27,21 @@ jobs:
         echo '                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">' >> database/changelog.xml
         echo '</databaseChangeLog>' >> database/changelog.xml
 
-    - name: Login no Azure
-      uses: azure/login@v1
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        allow-no-subscriptions: true
-        enable-AzPSSession: false
+    - name: Verificar se a URL está setada
+      run: |
+        if [[ -z "${{ secrets.AZURE_SQL_URL }}" ]]; then
+          echo "ERRO: AZURE_SQL_URL não está definido!"
+          exit 1
+        else
+          echo "AZURE_SQL_URL está definido."
+        fi
 
     - name: Testar conexão com Azure SQL
       uses: liquibase/liquibase-github-action@v4
       with:
         operation: 'status'
         changeLogFile: 'database/changelog.xml'
-        url: ${{ secrets.AZURE_DATABASE_URL }}
+        url: ${{ secrets.AZURE_SQL_URL }}
         username: ${{ secrets.AZURE_SQL_USER }}
         password: ${{ secrets.AZURE_SQL_PASSWORD }}
         classpath: './database'
