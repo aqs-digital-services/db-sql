@@ -1,0 +1,42 @@
+name: Deploy PostgreSQL na Azure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v3
+
+      - name: Autenticar no Azure
+        run: |
+          az login --service-principal \
+            --username ${{ secrets.AZURE_CLIENT_ID }} \
+            --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+            --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
+
+      - name: Inicializar Terraform
+        run: |
+          cd infra
+          terraform init
+
+      - name: Aplicar Terraform
+        run: |
+          cd infra
+          terraform apply -auto-approve \
+            -var "resource_group_name=${{ secrets.AZURE_RESOURCE_GROUP }}" \
+            -var "db_server_name=${{ secrets.AZURE_POSTGRES_SERVER }}" \
+            -var "db_admin=${{ secrets.AZURE_POSTGRES_USER }}" \
+            -var "db_password=${{ secrets.AZURE_POSTGRES_PASSWORD }}"
