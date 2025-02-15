@@ -1,0 +1,35 @@
+name: Deploy Banco de Dados
+
+on:
+  workflow_dispatch  # Agora só será executado manualmente
+
+jobs:
+  deploy_db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v3
+
+      - name: Autenticar no Azure
+        run: |
+          az login --service-principal \
+            --username ${{ secrets.AZURE_CLIENT_ID }} \
+            --password ${{ secrets.AZURE_CLIENT_SECRET }} \
+            --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+      - name: Instalar PostgreSQL Client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Aplicar Scripts no Banco
+        env:
+          PGPASSWORD: ${{ secrets.AZURE_POSTGRES_PASSWORD }}
+        run: |
+          for script in $(ls sql/migrations/*.sql | sort); do
+            echo "Executando $script..."
+            psql "host=${{ secrets.AZURE_POSTGRES_SERVER }} \
+                  port=5432 \
+                  dbname=postgres \
+                  user=${{ secrets.AZURE_POSTGRES_USER }}" \
+                  -f "$script"
+          done
