@@ -1,7 +1,11 @@
 name: Deploy Banco de Dados
 
 on:
-  workflow_dispatch  # Agora só será executado manualmente
+  push:
+    branches:
+      - main
+    paths:
+      - "migrations/**"
 
 jobs:
   deploy_db:
